@@ -1,0 +1,39 @@
+#!/bin/bash
+# Update the local servers goodies to The NOC
+#
+
+# Author: Etienne le Roux (etienne@linux.com) for ONMS.Net
+# Address: PoBox 634, Menlyn Retail Park, Pretoria, South Africa, 0063
+
+#
+#    Copyright (C) 2012 Etienne le Roux
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+########### CONFIG ###########
+update_id="" #ID from the dashboard
+
+##############################
+fan1=`sensors | grep fan1 | awk '{ print $2 }'`
+fan2=`sensors | grep fan2 | awk '{ print $2 }'`
+temp1=`sensors | grep temp1 | awk '{ print $2 }' | sed 's/+//g' | sed 's/°C//g'`
+temp2=`sensors | grep temp2 | awk '{ print $2 }' | sed 's/+//g' | sed 's/°C//g'`
+temp3=`sensors | grep temp3 | awk '{ print $2 }' | sed 's/+//g' | sed 's/°C//g'`
+volt=`sensors | grep +5V | awk '{ print $2 }' | sed 's/+//g'`
+LOAD=`cat /proc/loadavg | awk '{ print $2 }'`
+CPU=`nproc`
+USAGE=`echo "scale=2; ($LOAD / $CPU) * 100" | bc`
+
+wget -T 5 -t 1 --no-check-certificate "https://onms.net/update.php?update_id=$update_id&key=Fan1&value=$fan1&key1=Fan2&value1=$fan2&key2=Temperature1&value2=$temp1&key3=Temperature2&value3=$temp2&key4=Temperature3&value4=$temp3&key5=Voltage&value5=$volt&key6=CPU&value6=$USAGE" -O /dev/null
+

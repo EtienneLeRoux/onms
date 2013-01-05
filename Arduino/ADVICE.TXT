@@ -1,0 +1,10 @@
+1. I found this advice on one of the Arduino tutorial sites, it really does happen, my temperature readings jumped erratically until I applied this fix, it seems to be required, the above null int is used through to ensure this doesn't happen:
+
+If, when adding more sensors, you find that the temperature is inconsistant, this indicates that the sensors are interfering with each other when switching the analog reading circuit from one pin to the other. You can fix this by doing two delayed readings and tossing out the first one... 
+
+2. Sensors can jump a bit after the device is rebooted, ie. after uploads, etc - this in turn can fudge around with your values
+3. Certain sensors - such as the gas one - requires a heat-up period (some 24 hours) before you can really rely on readings, usually specified in the manufacturers guide
+4. The Arduino boards don't have realtime clocks so the reading reports may happen x seconds after specified delay, not an exact amount, we do cater for this on The NOC side
+5. If you have a sensor you can't get working, e-mail us at the address below and we'll try to assist you!
+
+Have advice? Please send it to support@drakepeak.net to have it added to the list!
