@@ -1,0 +1,67 @@
+#!/bin/bash
+# Update the network interface to The NOC
+#
+
+# Author: Etienne le Roux (etienne@linux.com) for ONMS.Net
+# Address: PoBox 634, Menlyn Retail Park, Pretoria, South Africa, 0063
+
+#
+#    Copyright (C) 2012 Etienne le Roux
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+## REQUIRES ###
+# Installed bc for calculations
+
+########### CONFIG ###########
+update_id="" #ID from the dashboard
+interface="eth0" #Interface you want to monitor
+interval="60" #Interval between readings in seconds
+
+echo "First reading..."
+data=`cat /proc/net/dev | grep $interface | sed -r 's/\s+/ /g'`
+
+received_bytes1=`echo $data | cut -d " " -f 2`
+received_packets1=`echo $data | cut -d " " -f 3`
+receive_errors1=`echo $data | cut -d " " -f 4`
+transmitted_bytes1=`echo $data | cut -d " " -f 10`
+transmitted_packets1=`echo $data | cut -d " " -f 11`
+transmit_errors1=`echo $data | cut -d " " -f 12`
+
+echo "Sleeping $interval seconds..."
+sleep $interval
+
+echo "Second reading..."
+data=`cat /proc/net/dev | grep $interface | sed -r 's/\s+/ /g'`
+
+received_bytes2=`echo $data | cut -d " " -f 2`
+received_packets2=`echo $data | cut -d " " -f 3`
+receive_errors2=`echo $data | cut -d " " -f 4`
+transmitted_bytes2=`echo $data | cut -d " " -f 10`
+transmitted_packets2=`echo $data | cut -d " " -f 11`
+transmit_errors2=`echo $data | cut -d " " -f 12`
+
+rb=`echo "scale=2; (($received_bytes2-$received_bytes1)/1024*8)/$interval" | bc`
+rp=`echo "($received_packets2-$received_packets1)/$interval" | bc`
+re=`echo "($receive_errors2-$receive_errors1)/$interval" | bc`
+
+tb=`echo "scale=2; (($transmitted_bytes2-$transmitted_bytes1)/1024*8)/$interval" | bc`
+tp=`echo "($transmitted_packets2-$transmitted_packets1)/$interval" | bc`
+te=`echo "($transmit_errors2-$transmit_errors1)/$interval" | bc`
+
+echo "Received Kbps: $rb Received Packets: $rp Receive Errors: $re"
+echo "Transmitted Kbps: $tb Transmitted Packets: $tp Transmit Errors: $te"
+
+echo "Sending values to www.onms.net for monitoring..."
+echo wget -T 5 -t 1 --no-check-certificate "https://onms.net/update.php?update_id=$update_id&key=ReceivedKbps&value=$rb&key1=ReceivedPackets&value1=$rp&key2=ReceiveErrors&value2=$re&key3=TransmittedKbps&value3=$tb&key4=TransmittedPackets&value=$tp&key5=TransmitErrors&value5=$te"

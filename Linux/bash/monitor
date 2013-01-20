@@ -21,6 +21,10 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+## REQUIRES ###
+# Configured lm_sensors package
+# Installed bc for calculations
+
 ########### CONFIG ###########
 update_id="" #ID from the dashboard
 
