@@ -63,8 +63,8 @@ te=`echo "($transmit_errors2-$transmit_errors1)/$interval" | bc`
 echo "Received Kbps: $rb Received Packets: $rp Receive Errors: $re"
 echo "Transmitted Kbps: $tb Transmitted Packets: $tp Transmit Errors: $te"
 
-#ensure that nothing has reset number wise in /proc/net/dev
-if [ $tb -gt -1 ]; then
+# Ensure that nothing has reset number wise in /proc/net/dev
+if [ $transmitted_bytes1 -lt $transmitted_bytes2 ]; then
  echo "Sending values to www.onms.net for monitoring..."
  wget -T 5 -t 1 --no-check-certificate "https://onms.net/update.php?update_id=$update_id&key=ReceivedKbps&value=$rb&key1=ReceivedPackets&value1=$rp&key2=ReceiveErrors&value2=$re&key3=TransmittedKbps&value3=$tb&key4=TransmittedPackets&value=$tp&key5=TransmitErrors&value5=$te" -O /dev/null
 fi
