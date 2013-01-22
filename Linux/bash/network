@@ -52,18 +52,6 @@ transmitted_bytes2=`echo $data | cut -d " " -f 10`
 transmitted_packets2=`echo $data | cut -d " " -f 11`
 transmit_errors2=`echo $data | cut -d " " -f 12`
 
-# Check if /proc/net/dev has reset after hitting 4GB limit
-if [ $received_bytes1 -gt $received_bytes2 ]; then
- echo "Statistics reset to 0 during interval, rate will be incorrect...";
- #Calculate using only first stats as average, not great but the best we can do...
- received_bytes2=$received_bytes1
- received_packets2=$received_packets1
- receive_errors2=$receive_errors1
- transmitted_bytes2=$transmitted_bytes1
- transmitted_packets2=$transmitted_packets1
- transmit_errors2=$transmit_errors1
-fi
-
 rb=`echo "scale=2; (($received_bytes2-$received_bytes1)/1024*8)/$interval" | bc`
 rp=`echo "($received_packets2-$received_packets1)/$interval" | bc`
 re=`echo "($receive_errors2-$receive_errors1)/$interval" | bc`
@@ -75,6 +63,8 @@ te=`echo "($transmit_errors2-$transmit_errors1)/$interval" | bc`
 echo "Received Kbps: $rb Received Packets: $rp Receive Errors: $re"
 echo "Transmitted Kbps: $tb Transmitted Packets: $tp Transmit Errors: $te"
 
-echo "Sending values to www.onms.net for monitoring..."
-wget -T 5 -t 1 --no-check-certificate "https://onms.net/update.php?update_id=$update_id&key=ReceivedKbps&value=$rb&key1=ReceivedPackets&value1=$rp&key2=ReceiveErrors&value2=$re&key3=TransmittedKbps&value3=$tb&key4=TransmittedPackets&value=$tp&key5=TransmitErrors&value5=$te" -O /dev/null
-
+#ensure that nothing has reset number wise in /proc/net/dev
+if [ $tb -gt -1 ]; then
+ echo "Sending values to www.onms.net for monitoring..."
+ wget -T 5 -t 1 --no-check-certificate "https://onms.net/update.php?update_id=$update_id&key=ReceivedKbps&value=$rb&key1=ReceivedPackets&value1=$rp&key2=ReceiveErrors&value2=$re&key3=TransmittedKbps&value3=$tb&key4=TransmittedPackets&value=$tp&key5=TransmitErrors&value5=$te" -O /dev/null
+fi
