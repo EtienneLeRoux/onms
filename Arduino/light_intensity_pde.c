@@ -38,7 +38,7 @@
 
 //Enter a MAC address and IP address for your controller below.
 byte mac[] = { 0x90, 0xA2, 0xDA, 0x00, 0x7E, 0x4E };//MAC Address of your Ethernet Shield, eg. on my shield it is 90-A2-DA-00-7E-4E
-char update_id[] = "a4c18c94a7b86002";//This is a unique id from the control panel at https://www.onms.net/
+char update_id[] = "";//This is a unique id from the control panel at https://www.onms.net/
 char server[] = "www.onms.net"; //Report to our servers hostname, ie. www.onms.net
 
 //Define the pins being used:
