@@ -1,0 +1,75 @@
+#!/bin/bash
+#
+# APCUPSD to ONMS.Net script for monitoring
+# Connects to port 3551 on APCUPSD machine
+
+# Author: Etienne le Roux (etienne@linux.com) for ONMS.Net
+# Address: PoBox 634, Menlyn Retail Park, Pretoria, South Africa, 0063
+
+#
+#    Copyright (C) 2012 Etienne le Roux
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+## REQUIRES ###
+# Install apcupsd for apcaccess command
+
+#CONFIG BELOW
+HOST=""
+UPDATE_ID=""
+# Keys you need to add for ONMS.Net
+# 1. Status
+# 2. Input Voltage
+# 3. Load Percentage
+# 4. Charged Percentage
+# 5. Time Left
+# 6. Temperature
+# 7. Battery Voltage
+# 8. Line Frequency
+#END CONFIG
+
+#Fetch the UPS data
+rm -f /tmp/ups_onms.tmp &> /dev/null
+/sbin/apcaccess status $HOST &> /tmp/ups_onms.tmp
+
+status=`cat /tmp/ups_onms.tmp | grep "STATUS" | awk '{ print $3 }'`
+if [ "$status" = "ONLINE" ]; then
+ status="1"
+else
+ status="0"
+fi
+
+line_voltage=`cat /tmp/ups_onms.tmp | grep "LINEV" | awk '{ print $3 }'`
+output_voltage=`cat /tmp/ups_onms.tmp | grep "OUTPUTV" | awk '{ print $3 }'`
+load_perc=`cat /tmp/ups_onms.tmp | grep "LOADPCT" | awk '{ print $3 }'`
+charged_perc=`cat /tmp/ups_onms.tmp | grep "BCHARGE" | awk '{ print $3 }'`
+time_left=`cat /tmp/ups_onms.tmp | grep "TIMELEFT" | awk '{ print $3 }'`
+temperature=`cat /tmp/ups_onms.tmp | grep "ITEMP" | awk '{ print $3 }'`
+batt_voltage=`cat /tmp/ups_onms.tmp | grep "BATTV" | grep -v "NOMBATTV" | awk '{ print $3 }'`
+line_freq=`cat /tmp/ups_onms.tmp | grep "LINEFREQ" | awk '{ print $3 }'`
+
+echo "UPS Data:
+Status: $status
+Input Voltage: $line_voltage
+Load Percentage: $load_perc
+Charged Percentage: $charged_perc
+Time Left: $time_left
+Temperature: $temperature
+Battery Voltage: $batt_voltage
+Line Frequency: $line_freq";
+
+echo "Sending to remote server..."
+
+wget -T 5 -t 1 --no-check-certificate "https://onms.net/update.php?update_id=$UPDATE_ID&key1=$status&key2=$line_voltage&key3=$load_perc&key4=$charged_perc&key5=$time_left&key6=$temperature&key7=$batt_voltage&key8=$line_freq" -O /dev/null
+

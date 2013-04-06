@@ -23,11 +23,20 @@
 
 ## REQUIRES ###
 # Configured lm_sensors package
-# Installed bc for calculations
+# Install bc for calculations
 
 ########### CONFIG ###########
 update_id="" #ID from the dashboard
 
+##### Keys Required on ONMS.Net #######
+# 1. CPU
+# 2. Fan 1
+# 3. Fan 2
+# 4. Temperature 1
+# 5. Temperature 2
+# 6. Temperature 3
+# 7. Voltage
+# 8. Load
 ##############################
 fan1=`sensors | grep fan1 | awk '{ print $2 }'`
 fan2=`sensors | grep fan2 | awk '{ print $2 }'`
@@ -39,5 +48,5 @@ LOAD=`cat /proc/loadavg | awk '{ print $2 }'`
 CPU=`nproc`
 USAGE=`echo "scale=2; ($LOAD / $CPU) * 100" | bc`
 
-wget -T 5 -t 1 --no-check-certificate "https://onms.net/update.php?update_id=$update_id&key=Fan1&value=$fan1&key1=Fan2&value1=$fan2&key2=Temperature1&value2=$temp1&key3=Temperature2&value3=$temp2&key4=Temperature3&value4=$temp3&key5=Voltage&value5=$volt&key6=CPU&value6=$USAGE" -O /dev/null
+wget -T 5 -t 1 --no-check-certificate "https://onms.net/update.php?update_id=$update_id&key1=$USAGE&key2=$fan1&key3=$fan2&key4=$temp1&key5=$temp2&key6=$temp3&key7=$volt&key8=$LOAD" -O /dev/null
 

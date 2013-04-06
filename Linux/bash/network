@@ -22,12 +22,20 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ## REQUIRES ###
-# Installed bc for calculations
+# Install bc for calculations
 
 ########### CONFIG ###########
 update_id="" #ID from the dashboard
 interface="eth0" #Interface you want to monitor
 interval="60" #Interval between readings in seconds, make it = time between updates to server
+##### Keys Required on ONMS.Net #######
+# 1. Received Bytes
+# 2. Received Packets
+# 3. Received Errors
+# 4. Transmitted Bytes
+# 5. Transmitted Packets
+# 6. Transmitted Errors
+##############################
 
 echo "First reading..."
 data=`cat /proc/net/dev | grep $interface | sed -r 's/\s+/ /g'`
@@ -66,5 +74,5 @@ echo "Transmitted Kbps: $tb Transmitted Packets: $tp Transmit Errors: $te"
 # Ensure that nothing has reset number wise in /proc/net/dev
 if [ $transmitted_bytes1 -lt $transmitted_bytes2 ]; then
  echo "Sending values to www.onms.net for monitoring..."
- wget -T 5 -t 1 --no-check-certificate "https://onms.net/update.php?update_id=$update_id&key=ReceivedKbps&value=$rb&key1=ReceivedPackets&value1=$rp&key2=ReceiveErrors&value2=$re&key3=TransmittedKbps&value3=$tb&key4=TransmittedPackets&value=$tp&key5=TransmitErrors&value5=$te" -O /dev/null
+ wget -T 5 -t 1 --no-check-certificate "https://onms.net/update.php?update_id=$update_id&key1=$rb&key2=$rp&key3=$re&key4=$tb&key5=$tp&key6=$te" -O /dev/null
 fi
