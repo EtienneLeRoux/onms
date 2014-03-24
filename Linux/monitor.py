@@ -35,6 +35,9 @@ url="https://monitman.com/update.php?"
 #Array to store all results, used in sendResults()
 results=[]
 
+#Array to store and track all drive serial numbers
+serials=[]
+
 #Add any custom code into getCustom to feed it through...
 def getCustom():
   print ""
@@ -58,7 +61,7 @@ def portCheck(host, port):
     except:
       elapsed = -1
   elapsed = round(elapsed, 2)
-  print "Seconds taken to connect to " + host + " on port " + str(port) + " (-1 - timeout/failure): " + str(elapsed) + "\n"
+  print "Seconds taken to connect to " + host + " on port " + str(port) + " (-1 = timeout/failure): " + str(elapsed) + "\n"
   results.extend(["Connect time to " + host + " on port " + str(port), str(elapsed)])
 
 #Start of standard checks/balances :-)
@@ -273,9 +276,13 @@ def getIPMI():
 
 def getSmartDetails(drive):
   if cmd_exists("smartctl"):
-    se = os.popen("`which smartctl` --all "+drive+" | grep -i serial")
+    se = os.popen("`which smartctl` --all "+drive+" | grep -i 'serial number' | awk '{ print $3 }'")
     se_line = se.readline()
-    if se_line:
+    se_line = se_line.replace("\n", "")
+    if se_line in serials:
+      print "Drive already checked, more than one file may point to the same device"
+    elif se_line:
+      serials.append(se_line);
       s = os.popen("`which smartctl` --all "+drive+" | grep 0x00 | grep -")
       while 1:
         line = s.readline()
@@ -355,10 +362,31 @@ def getSmartMon():
     else:
       break
 
+def getSerials():
+  #Serial tracking, add additional serial numbers
+  if cmd_exists("dmidecode"):
+    i = os.popen("`which dmidecode` | grep -i 'serial number'")
+    while 1:
+      line = i.readline()
+      if line:
+        line = line.replace("\n", "")
+        line = re.sub(' +',' ',line)
+        line = line.split(':')
+        line[1] = line[1].strip()
+        if line[1] and line[1] not in serials:
+          serials.append(line[1]);
+      else:
+        break
+
 def sendResults():
   print "Sending results..."
   print "URL: ", url
   print results
+
+def sendSerials():
+  print "Sending serials..."
+  print "URL: ", url
+  print serials
 
 def getLinuxStats():
   print "Starting to gather stats for this machine..."
@@ -370,8 +398,10 @@ def getLinuxStats():
   getIPMI()
   getSmartMon()
   getRAID()
+  getSerials()
   getCustom()
   sendResults()
+  sendSerials()
 
 def main():
   system = platform.system()
